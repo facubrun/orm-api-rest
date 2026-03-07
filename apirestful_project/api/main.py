@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from . import categories_router
+from . import categories_router, podcasts_router, authors_router
 from . import tags_metadata
 
 # apirestful con fastapi
@@ -16,6 +16,10 @@ app = FastAPI(
 
 # importacion de rutas
 app.include_router(categories_router, prefix="/categories", tags=["categories"])
+
+app.include_router(podcasts_router, tags=["podcasts"], prefix="/podcasts")
+
+app.include_router(authors_router, tags=["authors"], prefix="/authors")
 
 @app.get("/")
 async def root():
