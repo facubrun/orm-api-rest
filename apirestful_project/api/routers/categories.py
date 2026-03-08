@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from api import category_controller
 from sqlalchemy.orm import Session
 from api.database.database import get_db
-from api import CategoryCreateSchema, CategorySchema
+from api import CategoryCreateSchema, CategorySchema, CategoryPodcastsSchema
 
 # enrutador donde se definen endpoints
 router = APIRouter()
@@ -17,6 +17,13 @@ async def read_category(category_id: int, db: Session = Depends(get_db)):
     if category == None:
         raise HTTPException(status_code=404, detail=f"Category {category_id} not found")
     return category
+
+@router.get("/{category_id}/podcasts", response_model=list[CategoryPodcastsSchema])
+async def read_category_podcasts(category_id: int, db: Session = Depends(get_db)):
+    category = category_controller.get_category(db, category_id)
+    if category == None:
+        raise HTTPException(status_code=404, detail=f"Category {category_id} not found")
+    return category.podcasts
 
 @router.post("/", response_model=CategorySchema)
 async def create_category(category: CategoryCreateSchema, db: Session = Depends(get_db)):
@@ -34,5 +41,7 @@ async def delete_category(category_id: int, db: Session = Depends(get_db)):
     categories = category_controller.delete_category(db, category_id)
     if categories == None:
         raise HTTPException(status_code=404, detail=f"Category {category_id} not found")
+    elif categories == -1:
+        raise HTTPException(status_code=400, detail=f"Category {category_id} cannot be deleted because it has associated podcasts")
     return categories
 

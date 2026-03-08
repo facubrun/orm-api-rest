@@ -1,5 +1,16 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, ForeignKey, Integer, Table, create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+# Base declarativa para los modelos ORM
+Base = declarative_base()
+
+# tabla asociacion entre podcasts y authors
+podcasts_authors = Table(
+    'podcasts_authors',
+    Base.metadata,
+    Column('podcast_id', Integer, ForeignKey('podcasts.id'), primary_key=True),
+    Column('author_id', Integer, ForeignKey('authors.id'), primary_key=True)
+)
 
 # creacion del conector a la base de datos
 SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root@localhost/wordcast"

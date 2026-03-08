@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from api.models.category import Category as CategoryModel
 from api.schemas.category import CategoryCreate as CategoryCreateSchema
-from sqlalchemy.exc import SQLAlchemyError, NoResultFound
-
+from sqlalchemy.exc import NoResultFound, IntegrityError
+from sqlalchemy.orm.exc import UnmappedInstanceError
 def get_categories(db):
     # crear la consulta
     stmt = select(CategoryModel)
@@ -34,10 +34,10 @@ def update_category(db, category_id: int, category: CategoryCreateSchema):
         result = db.execute(select(CategoryModel).where(CategoryModel.id == category_id))
         categoryModel = result.scalar_one()
         # actualizar los campos de la categoria
-        category_db.name = category.name
+        categoryModel.name = category.name
         # guardar los cambios en la bd
         db.commit()
-        db.refresh(category_db)
+        db.refresh(categoryModel)
     except NoResultFound:
         categoryModel = None
     return categoryModel
@@ -45,12 +45,14 @@ def update_category(db, category_id: int, category: CategoryCreateSchema):
 def delete_category(db, category_id: int):
     try:
         # buscar categoria por id en la bd
-        category_db = db.get(CategoryModel, category_id)
+        categoryModel = db.get(CategoryModel, category_id)
         # eliminar la categoria de la bd
-        db.delete(category_db)
+        db.delete(categoryModel)
         db.commit()
+        # devolver la lista actualizada de categorias
         categories = get_categories(db)
     except UnmappedInstanceError:
         categories = None
-    # devolver la lista actualizada de categorias
+    except IntegrityError:
+        categories = -1
     return categories
